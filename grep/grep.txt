@@ -1,0 +1,58 @@
+### **The Engineering Concepts**
+
+To build this, you need to introduce one new header and two new functions to your toolkit.
+
+1. **`<string.h>`:** You need this standard library to manipulate and search text.
+2. **`fgets()`:** You saw this briefly before. Since `grep` operates on *lines* of text, reading byte-by-byte (`fgetc`) or in massive raw chunks (`fread`) makes searching incredibly difficult. `fgets` grabs text until it hits a newline (`\n`), perfectly isolating a single line for you to inspect.
+3. **`strstr()`:** The "String within a String" function. You give it a haystack (the line of text) and a needle (your search word). It scans the memory; if it finds the needle, it returns a pointer to it. If it doesn't, it returns `NULL`.
+
+---
+
+### **System Schematics: The `grep` Clone**
+
+**Objective:** Write a program that takes a search term and one or more file paths, reads the files line-by-line, and prints only the lines that contain the search term.
+
+### Step 1: The New Argument Layout
+
+Your argument structure has changed.
+
+* `argv[0]` is the program name (`./grep`).
+* `argv[1]` is the "needle" (the word you are searching for).
+* `argv[2]` up to `argc - 1` are the files you need to search.
+
+**The Action:** Add a safety check at the top of `main`. If `argc < 3`, the user didn't provide enough arguments. Print a usage error (e.g., `Usage: ./grep <search_term> <file>`) and `return 1;` to exit the program with an error code. Save `argv[1]` to a variable like `char *search_term` for readability.
+
+### Step 2: The File Loop & Line Buffer
+
+Start your `for` loop, but this time, initialize your counter at `int i = 2` to skip both the program name and the search term.
+
+**The Action:** Inside the loop, open the file and check for `NULL` exactly like you did in `cat`. Before you start reading, allocate your memory buffer. Since we are reading lines of text, `char line_buffer[2048];` (2KB) is a safe maximum limit for a single line in most text files.
+
+### Step 3: The `fgets` Engine
+
+Set up a `while` loop using `fgets`.
+The `fgets` function takes 3 arguments:
+
+1. Where to put the text (`line_buffer`).
+2. The maximum number of bytes to read (`sizeof(line_buffer)`). This prevents buffer overflows.
+3. Where to read from (`file_ptr`).
+
+**The Action:** `fgets` returns `NULL` when it reaches the End of File. Your loop condition should look like this: `while (fgets(line_buffer, sizeof(line_buffer), file_ptr) != NULL)`.
+
+### Step 4: The Search and Strike
+
+Inside the `while` loop, you now have a single, isolated line of text sitting in your buffer.
+
+**The Action:** Use an `if` statement to check `strstr(line_buffer, search_term)`.
+
+* If `strstr` returns `NULL`, the word isn't in this line. Do nothing.
+* If `strstr` returns anything *other* than `NULL`, you have a match!
+
+### Step 5: The Output
+
+If you found a match, immediately print the entire `line_buffer`.
+*Note:* Because `fgets` automatically includes the invisible `\n` newline character at the end of the line it grabbed, you do **not** need to add `\n` to your `printf` statement. Just print the string exactly as it is: `printf("%s", line_buffer);`.
+
+### Step 6: Cleanup
+
+Close the file with `fclose(file_ptr);` at the end of your `for` loop, right before it iterates to the next file.

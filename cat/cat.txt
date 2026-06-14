@@ -1,0 +1,19 @@
+Objective: Write a C program that takes command-line arguments and prints them directly to the standard output, replicating the behavior of the core Unix `echo` tool.
+
+1. Handle Command-Line Arguments: Setting up the entry point.
+        * Define your program's `main` function to accept `int argc` (argument count) and `char *argv[]` (argument vector/array of strings).
+        * Remember that `argv[0]` is always the name of your compiled executable, so the actual text the user wants to echo starts at `argv[1]`.
+
+2. Iterate and Print: Processing the input.
+        * Create a loop that starts at index `1` and iterates up to `argc - 1`.
+        * Use a standard library function (like `printf` or `fputs`) to print each string from the `argv` array to standard output.
+        * Ensure you insert a single space character between words, but avoid adding a trailing space after the final word.
+
+3. Format the Final Output: Terminal hygiene.
+        * After the loop completes, print a single newline character (`\n`).
+        * This ensures the user's terminal prompt drops cleanly to the next line after your program finishes executing.
+
+4. Implement the '-n' Flag: Stretch goal.
+        * The real Unix `echo` supports a `-n` flag, which tells the program *not* to print the trailing newline.
+        * Add a conditional check before your loop to see if `argv[1]` matches `-n`.
+        * If it does, set a boolean flag to skip the final `\n` and start your printing loop at `argv[2]` instead.
