@@ -44,5 +44,7 @@ gcc echo/echo.c -o echo && ./echo -n hello world
 gcc grep/grep.c -o grep && ./grep search_term file.txt
 ```
 
+**Codemap:** [CODEMAP.md](CODEMAP.md), the files, hub functions and call graph, generated from the code.
+
 ---
 *powered by logic, coffee, and many sleepless nights*
