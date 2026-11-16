@@ -1,7 +1,6 @@
-
 # minicoreutils
 
-> Tiny from-scratch rewrites of `cat`, `echo`, and `grep` in C, built to get comfortable with the standard I/O and string libraries before moving on to bigger systems work.
+> From-scratch `cat`, `echo` and `grep` in C, using nothing but the standard library.
 
 ![Language](https://img.shields.io/badge/Language-C-blue)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-green)
@@ -9,45 +8,40 @@
 
 ## Overview
 
-Three single-file utilities that mirror the basic behavior of their GNU coreutils namesake. No external dependencies beyond the C standard library. The goal is to learn development in an embedded environment as well as learning how memory management works and to get the core file I/O and string-handling patterns down by simply reading a file byte-by-byte, walking `argv`, and scanning line buffers.
+Three single-file utilities, one directory each. The point is to get file I/O, `argv` walking and line buffers down by hand before bigger systems work.
 
-## Utilities
+## How They Work
 
-| Program | Mirrors | What it does |
+```mermaid
+flowchart LR
+    subgraph cat
+        c1["for each file"] --> c2[fopen] --> c3["fgetc → stdout"]
+        c2 -->|"fails"| c4["print error, next file"]
+    end
+    subgraph echo
+        e1{"argv[1] == -n?"} -->|"yes"| e2["print args, no newline"]
+        e1 -->|"no"| e3["print args + newline"]
+    end
+    subgraph grep
+        g1["for each file"] --> g2["fgets into 2048-byte buffer"] --> g3{strstr hit?} -->|"yes"| g4[print line]
+    end
+```
+
+| Program | Mirrors | Notes |
 |---|---|---|
-| `cat.c` | `cat` | Opens each file argument and streams its contents to stdout one character at a time via `fgetc`. |
-| `echo.c` | `echo` | Prints its arguments space-separated. Supports `-n` to suppress the trailing newline. |
-| `grep.c` | `grep` | Reads each file line-by-line into a fixed 2048-byte buffer and prints any line containing the search term via `strstr`. |
+| `cat/cat.c` | `cat` | Streams each file a character at a time; a missing file is skipped, not fatal |
+| `echo/echo.c` | `echo` | Space-separated args; `-n` drops the newline |
+| `grep/grep.c` | `grep` | Plain substring match (`strstr`), no regex |
 
-## Notes
+**Left out on purpose:** line numbers, recursion, case-insensitivity.
+**Differences from GNU:** errors go to stdout, `cat` with no files doesn't read stdin, and `grep` splits lines longer than 2,047 characters.
 
-- `cat` and `grep` both fail gracefully per-file. The program prints an error if one file in the argument list can't be opened and continues with the rest rather than just exiting.
-- `grep` uses a fixed-size line buffer rather than dynamic allocation, so it's a simplified single-substring matcher, not a real regex engine.
-- Flags for line numbers, recursion, and case-insensitivity were left out on purpose to keep the first pass focused on plain file I/O.
+## Build
 
-## Building and Running
-
-Just a standard C compiler (GCC / Clang). Each utility compiles independently.
-
-**Linux / macOS**
 ```bash
-gcc cat.c -o cat
-gcc echo.c -o echo
-gcc grep.c -o grep
-```
-
-**Windows (MinGW / GCC)**
-```bash
-gcc cat.c -o cat.exe
-gcc echo.c -o echo.exe
-gcc grep.c -o grep.exe
-```
-
-**Usage**
-```bash
-./cat file.txt
-./echo -n hello world
-./grep search_term file.txt
+gcc cat/cat.c -o cat && ./cat file.txt
+gcc echo/echo.c -o echo && ./echo -n hello world
+gcc grep/grep.c -o grep && ./grep search_term file.txt
 ```
 
 ---
