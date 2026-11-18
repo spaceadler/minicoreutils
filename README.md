@@ -13,19 +13,15 @@ Three single-file utilities, one directory each. The point is to get file I/O, `
 ## How They Work
 
 ```mermaid
-flowchart LR
-    subgraph cat
-        c1["for each file"] --> c2[fopen] --> c3["fgetc → stdout"]
-        c2 -->|"fails"| c4["print error, next file"]
-    end
-    subgraph echo
-        e1{"argv[1] == -n?"} -->|"yes"| e2["print args, no newline"]
-        e1 -->|"no"| e3["print args + newline"]
-    end
-    subgraph grep
-        g1["for each file"] --> g2["fgets into 2048-byte buffer"] --> g3{strstr hit?} -->|"yes"| g4[print line]
-    end
+flowchart TB
+    args["next file in argv"] --> open{"fopen ok?"}
+    open -->|"no"| err["print error,<br/>skip the file"]
+    open -->|"yes"| read["cat: fgetc → stdout<br/>grep: fgets 2048 bytes, strstr hit → print"]
+    err --> args
+    read --> args
 ```
+
+`cat` and `grep` share this loop. `echo` opens no files: it prints its arguments, without the newline if the first one is `-n`.
 
 | Program | Mirrors | Notes |
 |---|---|---|
